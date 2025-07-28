@@ -1,25 +1,55 @@
 import streamlit as st
 import pandas as pd
+import datetime  # 🔧 Import datetime module
 
-st.title("🏏 Cricket League Relegation Simulator")
+st.title("🏏 BCMCL Second Division Relegation Simulator")
 
+# === File Upload ===
 st.subheader("📥 Upload Files")
 
 points_file = st.file_uploader("Upload Points Table CSV", type=["csv"])
-fixtures_file = st.file_uploader("Upload Fixtures CSV", type=["csv"])
+fixtures_file = st.file_uploader("Upload Fixtures Excel File", type=["xlsx"])
 
 if points_file and fixtures_file:
-    # Load CSVs
-    df = pd.read_csv(points_file)
-    df.set_index("Team", inplace=True)
+    # === Load and Clean Points Table ===
+    points_df = pd.read_csv(points_file)
+    points_df.columns = points_df.columns.str.strip()
+    points_df = points_df.rename(columns={"TEAM": "Team", "PTS": "Points", "MAT": "Played"})
+    points_df = points_df[["Team", "Points", "Played"]]
+    points_df.set_index("Team", inplace=True)
 
-    fixtures_df = pd.read_csv(fixtures_file)
-    fixtures = list(zip(fixtures_df["Team1"], fixtures_df["Team2"]))
+    # === Load Fixtures Excel ===
+    try:
+        fixtures_df = pd.read_excel(fixtures_file, skiprows=1)
+        fixtures_df.columns = fixtures_df.columns.str.strip()
+    except Exception as e:
+        st.error(f"Error reading Excel file: {e}")
+        st.stop()
 
+    # 🔧 Filter fixtures based on current date
+    if "Date" not in fixtures_df.columns:
+        st.error("❌ 'Date' column is missing in the fixtures file.")
+        st.stop()
+
+    fixtures_df["Date"] = pd.to_datetime(fixtures_df["Date"]).dt.date
+    today = datetime.date.today()
+    upcoming_fixtures_df = fixtures_df[fixtures_df["Date"] > today]
+
+    if upcoming_fixtures_df.empty:
+        st.success("✅ No upcoming fixtures after today.")
+        st.stop()
+
+    # 🔧 Extract fixtures after today
+    if "Team One" in upcoming_fixtures_df.columns and "Team Two" in upcoming_fixtures_df.columns:
+        fixtures = list(zip(upcoming_fixtures_df["Team One"], upcoming_fixtures_df["Team Two"]))
+    else:
+        st.error("❌ Could not find 'Team One' and 'Team Two' columns in the Excel file.")
+        st.stop()
+
+    # === Match Predictions ===
     st.subheader("✅ Predict Match Winners")
 
     results = {}
-
     for i, (team1, team2) in enumerate(fixtures):
         result = st.radio(
             f"Match {i+1}: {team1} vs {team2}",
@@ -34,9 +64,11 @@ if points_file and fixtures_file:
         results[(team1, team2)] = result
 
     # === Update Table Based on Results ===
-    updated_df = df.copy()
+    updated_df = points_df.copy()
 
     for (team1, team2), result in results.items():
+        if team1 not in updated_df.index or team2 not in updated_df.index:
+            continue  # Skip if team names are inconsistent
         if result == f"{team1} wins":
             updated_df.loc[team1, "Points"] += 4
             updated_df.loc[team1, "Played"] += 1
@@ -52,7 +84,7 @@ if points_file and fixtures_file:
             updated_df.loc[team2, "Played"] += 1
         # "Not played" does nothing
 
-    # === Show Updated Table ===
+    # === Final Table ===
     st.subheader("📊 Updated Points Table")
 
     sorted_table = updated_df.sort_values(by=["Points", "Played"], ascending=[False, True])
@@ -64,4 +96,4 @@ if points_file and fixtures_file:
         st.warning(f"🚨 Current Relegation Zone: {', '.join(relegation_teams)}")
 
 else:
-    st.info("Please upload both the Points Table and Fixtures CSV files.")
+    st.info("Please upload both files to begin.")
