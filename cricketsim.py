@@ -52,6 +52,7 @@ for i, (team1, team2) in enumerate(fixtures):
             "No result",
             "Not played"
         ],
+        index=3,
         key=f"match_{i}"
     )
     results[(team1, team2)] = result
