@@ -131,6 +131,9 @@ if points_file and fixtures_file:
         relegation_teams = sorted_table.tail(2).index.tolist()
         if relegation_teams:
             st.warning(f"🚨 Relegation Zone: {', '.join(relegation_teams)}")
+        top_two_teams = points_df.head(2)["TEAM"].tolist()
+        st.success(f"🎉 **{top_two_teams[0]}** and **{top_two_teams[1]}** are currently in the top 2 and will advance to the next division!")
+
 
 # Show info message if files not uploaded
 else:
