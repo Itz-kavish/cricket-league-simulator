@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import datetime  # 🔧 Import datetime module
 
-st.title("🏏 BCMCL Second Division Relegation Simulator")
+st.title("🏏 BCMCL Points Table Simulator")
 
 # === File Upload ===
 st.subheader("📥 Upload Files")
@@ -50,18 +50,27 @@ if points_file and fixtures_file:
     st.subheader("✅ Predict Match Winners")
 
     results = {}
-    for i, (team1, team2) in enumerate(fixtures):
+
+    # Zip team1, team2, and dates together
+    for i, (team1, team2, match_date) in enumerate(zip(
+            upcoming_fixtures_df["Team One"],
+            upcoming_fixtures_df["Team Two"],
+            upcoming_fixtures_df["Date"])):
+        
+        readable_date = match_date.strftime("%b %d, %Y")  # Example: Jul 31
         result = st.radio(
-            f"Match {i+1}: {team1} vs {team2}",
+            f"Match {i+1}: {team1} vs {team2} ({readable_date})",
             options=[
                 f"{team1} wins",
                 f"{team2} wins",
                 "No result",
                 "Not played"
             ],
+            index=3,
             key=f"match_{i}"
         )
         results[(team1, team2)] = result
+
 
     # === Update Table Based on Results ===
     updated_df = points_df.copy()
@@ -84,16 +93,18 @@ if points_file and fixtures_file:
             updated_df.loc[team2, "Played"] += 1
         # "Not played" does nothing
 
-    # === Final Table ===
-    st.subheader("📊 Updated Points Table")
-
+    # === Final Table in Sidebar ===
     sorted_table = updated_df.sort_values(by=["Points", "Played"], ascending=[False, True])
-    st.dataframe(sorted_table.style.format({"Points": "{:.0f}", "Played": "{:.0f}"}))
+    with st.sidebar:
+        st.subheader("📊 Updated Points Table")
+        st.dataframe(sorted_table.style.format({"Points": "{:.0f}", "Played": "{:.0f}"}), use_container_width=True)
 
-    # Highlight relegation zone
-    relegation_teams = sorted_table.tail(2).index.tolist()
-    if relegation_teams:
-        st.warning(f"🚨 Current Relegation Zone: {', '.join(relegation_teams)}")
+        # Highlight relegation zone
+        relegation_teams = sorted_table.tail(2).index.tolist()
+        if relegation_teams:
+            st.warning(f"🚨 Relegation Zone: {', '.join(relegation_teams)}")
 
+# Show info message if files not uploaded
 else:
     st.info("Please upload both files to begin.")
+
