@@ -6,6 +6,34 @@ st.title("🏏 BCMCL Points Table Simulator")
 
 # === File Upload ===
 st.subheader("📥 Upload Files")
+with st.expander("ℹ️ How to Use This Simulator"):
+    st.markdown("""
+    ### 📝 Step-by-Step Instructions
+
+    #### 🔽 Step 1: Download the Required Files from BCMCL Website
+
+    1. **Go to the BCMCL Website**:  
+       👉 [https://www.bcmcl.ca/bcmcl](https://www.bcmcl.ca/bcmcl)
+
+    2. **Download the Fixtures Excel File**  
+       - Navigate to: `Matches > Schedule`
+       - Select your **division** (e.g., 2A, 3B, etc.)
+       - Click the **Excel icon** at the top-right to download the fixtures.
+
+    3. **Download the Points Table CSV File**  
+       - Navigate to: `Statistics > Points Table`
+       - Select your **division**
+       - Click the **Excel icon** to download the points table in CSV format.
+
+    #### 📤 Step 2: Upload the Files Below
+
+    - **Upload the Points Table CSV file**  
+    - **Upload the Fixtures Excel file**
+
+    Once both files are uploaded, the app will automatically load your data and display simulation options.
+
+    ✅ *Make sure the files match the same division!*
+    """)
 
 points_file = st.file_uploader("Upload Points Table CSV", type=["csv"])
 fixtures_file = st.file_uploader("Upload Fixtures Excel File", type=["xlsx"])
