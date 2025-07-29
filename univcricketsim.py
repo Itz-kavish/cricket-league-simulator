@@ -123,6 +123,7 @@ if points_file and fixtures_file:
 
     # === Final Table in Sidebar ===
     sorted_table = updated_df.sort_values(by=["Points", "Played"], ascending=[False, True])
+
     with st.sidebar:
         st.subheader("📊 Updated Points Table")
         st.dataframe(sorted_table.style.format({"Points": "{:.0f}", "Played": "{:.0f}"}), use_container_width=True)
@@ -131,8 +132,9 @@ if points_file and fixtures_file:
         relegation_teams = sorted_table.tail(2).index.tolist()
         if relegation_teams:
             st.warning(f"🚨 Relegation Zone: {', '.join(relegation_teams)}")
-        top_two_teams = points_df.head(2)["TEAM"].tolist()
-        st.success(f"🎉 **{top_two_teams[0]}** and **{top_two_teams[1]}** are currently in the top 2 and will advance to the next division!")
+        promotion_teams = sorted_table.head(2).index.tolist()
+        if promotion_teams:
+            st.success(f"🏆 Currently Advancing: {', '.join(promotion_teams)}")
 
 
 # Show info message if files not uploaded
